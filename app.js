@@ -209,10 +209,10 @@ async function selectPlaylist(pl) {
       return;
     }
 
-    // Fetch display names for each unique user
     await Promise.all(Object.keys(memberMap).map(async (uid) => {
       try {
         const u = await spotifyGet(`https://api.spotify.com/v1/users/${uid}`);
+        console.log('[GQF] user', uid, '-> display_name:', u.display_name);
         memberMap[uid] = u.display_name || uid;
       } catch (_) {
         memberMap[uid] = uid;
