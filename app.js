@@ -1,6 +1,17 @@
 const CLIENT_ID = '33adcc7d9d21461692e6abbe93dc51ef';
 const REDIRECT_URI = 'https://spotifygroupie.github.io';
 
+const FRIEND_NAMES = {
+  '92swuvcb8qlcp67ghfse2wyhp':    'AdrianRPNK',
+  'xea9kyo32dr4zuxny05sur22m':    'GooberBone',
+  '31kwvg2lk7q6cda4uh2riaf3hrp4': 'Hess',
+  'mqf7xginrz6bg63s5fl4pvqxn':    'The Rat Creature',
+  '31c7w4225cc4vzo7dlrrypgwg6ju': 'Lương Gia Bửu',
+  '9ucq3a7eyyaim0qnb1qe2xyo9':    'melkbot',
+  '5mivh7dtynq4owuyq9evq66ji':    'Supernova',
+  '66qcq61mvxvpfqzb32au640vq':    'Andrew Austrager',
+};
+
 // ---- State ----
 let accessToken = null;
 let allTracks = [];
@@ -211,12 +222,8 @@ async function selectPlaylist(pl) {
 
     // Spotify's /users/{id} endpoint is restricted to 403 for other users.
     // Only /me works reliably, so identify the current user and shorten other IDs.
-    try {
-      const me = await spotifyGet('https://api.spotify.com/v1/me');
-      if (memberMap[me.id] !== undefined) memberMap[me.id] = me.display_name || me.id;
-    } catch (_) {}
     Object.keys(memberMap).forEach(uid => {
-      if (memberMap[uid] === uid) memberMap[uid] = uid.length > 15 ? uid.slice(0, 10) + '...' : uid;
+      memberMap[uid] = FRIEND_NAMES[uid] || (uid.length > 15 ? uid.slice(0, 10) + '...' : uid);
     });
 
     renderMembersGrid();
