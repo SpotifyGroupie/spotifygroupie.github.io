@@ -1,5 +1,5 @@
 const CLIENT_ID = '33adcc7d9d21461692e6abbe93dc51ef';
-const REDIRECT_URI = 'https://SpotifyGroupie.github.io/group-queue-filter';
+const REDIRECT_URI = 'https://spotifygroupie.github.io';
 
 // ---- State ----
 let accessToken = null;
