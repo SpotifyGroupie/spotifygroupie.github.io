@@ -128,13 +128,13 @@ async function exchangeCode(code) {
 }
 
 // ---- Spotify API ----
-async function spotifyGet(url, statusEl) {
+async function spotifyGet(url, onWait) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
     if (res.status === 429) {
       const secs = parseInt(res.headers.get('Retry-After') || '2') + 1;
       for (let s = secs; s > 0; s--) {
-        setStatus(statusEl || 'status2', `Rate limited by Spotify, retrying in ${s}s...`);
+        if (onWait) onWait(s);
         await new Promise(r => setTimeout(r, 1000));
       }
       continue;
@@ -158,7 +158,9 @@ async function loadPlaylists() {
     let playlists = [];
     let url = 'https://api.spotify.com/v1/me/playlists?limit=50';
     while (url) {
-      const data = await spotifyGet(url, 'status');
+      const data = await spotifyGet(url, s => {
+        $('playlist-grid').innerHTML = `<div class="loading">Rate limited by Spotify, retrying in ${s}s...</div>`;
+      });
       playlists = playlists.concat(data.items || []);
       url = data.next;
     }
