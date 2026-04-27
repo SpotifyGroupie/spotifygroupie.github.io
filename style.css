@@ -425,3 +425,12 @@ input[type="text"]::placeholder { color: var(--muted); }
 }
 .info-icon:hover::after,
 .info-icon.open::after { opacity: 1; }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+.toggle-row .equal-toggle {
+  margin-bottom: 0;
+  flex: 1;
+}

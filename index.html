@@ -44,18 +44,22 @@
       </div>
       <div id="status2" class="status"></div>
     </div>
-    <label class="equal-toggle">
-      <input type="checkbox" id="equalMode" checked>
-      <span class="equal-toggle-box"></span>
-      <span class="equal-toggle-label">Weighted Selection</span>
+    <div class="toggle-row">
+      <label class="equal-toggle">
+        <input type="checkbox" id="equalMode" checked>
+        <span class="equal-toggle-box"></span>
+        <span class="equal-toggle-label">Weighted Selection</span>
+      </label>
       <span class="info-icon" data-tooltip="Each person contributes the same number of songs, capped to whoever added the fewest.">i</span>
-    </label>
-    <label class="equal-toggle">
-      <input type="checkbox" id="weightedMode" checked>
-      <span class="equal-toggle-box"></span>
-      <span class="equal-toggle-label">Weighted Ordering</span>
+    </div>
+    <div class="toggle-row">
+      <label class="equal-toggle">
+        <input type="checkbox" id="weightedMode" checked>
+        <span class="equal-toggle-box"></span>
+        <span class="equal-toggle-label">Weighted Ordering</span>
+      </label>
       <span class="info-icon" data-tooltip="No one plays more than twice in a row. People who haven't had a song in a while are more likely to be picked next.">i</span>
-    </label>
+    </div>
     <button class="btn btn-full" onclick="buildQueue()">Build Shuffled Queue</button>
   </div>
 
