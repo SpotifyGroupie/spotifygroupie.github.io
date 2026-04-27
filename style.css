@@ -377,3 +377,11 @@ input[type="text"]::placeholder { color: var(--muted); }
 .equal-toggle input:checked + .equal-toggle-box { background: var(--green); }
 .equal-toggle input:checked + .equal-toggle-box::after { left: 19px; }
 .equal-toggle-label { font-size: 0.85rem; color: var(--muted); }
+.btn-stop {
+  width: 100%;
+  margin-top: 0.6rem;
+  background: transparent;
+  border: 1px solid #e05;
+  color: #e05;
+}
+.btn-stop:hover { background: #e05; color: #fff; }

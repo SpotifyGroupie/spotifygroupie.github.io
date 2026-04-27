@@ -59,7 +59,7 @@
 
   <!-- STEP 4: Queue + play -->
   <div class="step" id="step-queue">
-    <button class="back-btn" onclick="goBack('step-members')">← change who's here</button>
+    <button class="back-btn" onclick="backFromQueue()">← change who's here</button>
     <div class="card">
       <div class="stats-row">
         <div>
@@ -75,6 +75,7 @@
       <div class="track-list" id="track-list"></div>
     </div>
     <button class="btn btn-full" onclick="startPlayback()">▶ Play on Spotify Now</button>
+    <button class="btn btn-stop" id="stop-btn" onclick="stopQueueing()" style="display:none">Stop Queueing</button>
     <div id="status3" class="status" style="margin-top:0.8rem;"></div>
     <div class="notice" style="margin-top:1rem; font-size:0.68rem;">
       Make sure Spotify is open and playing on your device before hitting play. This replaces your current queue.

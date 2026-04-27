@@ -22,6 +22,7 @@ let manualMode = false;
 let manualMembers = {};
 let manualIdCounter = 0;
 let loadingPlaylist = false;
+let queueCancelled = false;
 
 // ---- Helpers ----
 function $(id) { return document.getElementById(id); }
@@ -48,6 +49,17 @@ function showStep(id) {
 }
 
 function goBack(step) { showStep(step); }
+
+function backFromQueue() {
+  queueCancelled = true;
+  $('stop-btn').style.display = 'none';
+  setStatus('status3', '');
+  showStep('step-members');
+}
+
+function stopQueueing() {
+  queueCancelled = true;
+}
 
 function shuffle(arr) {
   const a = [...arr];
@@ -469,12 +481,15 @@ function buildQueue() {
 // ---- Playback ----
 async function startPlayback() {
   if (!queueTracks.length) return;
+  queueCancelled = false;
+  $('stop-btn').style.display = '';
   setStatus('status3', 'Finding active device...');
   try {
     const devData = await spotifyGet('https://api.spotify.com/v1/me/player/devices');
     const device = devData.devices?.find(d => d.is_active) || devData.devices?.[0];
     if (!device) {
       setStatus('status3', '✗ No active device found. Open Spotify and play something first.', 'err');
+      $('stop-btn').style.display = 'none';
       return;
     }
 
@@ -487,6 +502,10 @@ async function startPlayback() {
 
     // Queue the rest
     for (let i = 1; i < queueTracks.length; i++) {
+      if (queueCancelled) {
+        setStatus('status3', `Stopped after ${i} / ${queueTracks.length} tracks.`);
+        break;
+      }
       setStatus('status3', `Queuing tracks... ${i} / ${queueTracks.length - 1}`);
       let res;
       for (let attempt = 0; attempt < 5; attempt++) {
@@ -504,9 +523,11 @@ async function startPlayback() {
       await new Promise(r => setTimeout(r, 100));
     }
 
-    setStatus('status3', `Queued ${queueTracks.length} tracks on "${device.name}"!`, 'ok');
+    if (!queueCancelled) setStatus('status3', `Queued ${queueTracks.length} tracks on "${device.name}"!`, 'ok');
   } catch (e) {
     setStatus('status3', '✗ ' + e.message, 'err');
+  } finally {
+    $('stop-btn').style.display = 'none';
   }
 }
 
