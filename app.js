@@ -278,11 +278,16 @@ function renderMembersGrid() {
       input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
     });
 
+    const nameRow = document.createElement('div');
+    nameRow.style.cssText = 'display:flex;align-items:center;gap:2px;min-width:0';
+    nameEl.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1';
+    nameRow.appendChild(nameEl);
+    nameRow.appendChild(editBtn);
+
     const nameWrap = document.createElement('div');
     nameWrap.className = 'member-name';
-    nameWrap.appendChild(nameEl);
-    nameWrap.appendChild(editBtn);
-    nameWrap.insertAdjacentHTML('beforeend', `<br><span style="font-size:0.6rem;color:var(--muted)">${trackCount} songs</span>`);
+    nameWrap.appendChild(nameRow);
+    nameWrap.insertAdjacentHTML('beforeend', `<span style="font-size:0.6rem;color:var(--muted)">${trackCount} songs</span>`);
 
     chip.innerHTML = '';
     chip.appendChild(document.createElement('div')).className = 'dot';
