@@ -222,8 +222,9 @@ async function selectPlaylist(pl) {
 
     // Spotify's /users/{id} endpoint is restricted to 403 for other users.
     // Only /me works reliably, so identify the current user and shorten other IDs.
+    const savedNames = JSON.parse(localStorage.getItem('gqf_names') || '{}');
     Object.keys(memberMap).forEach(uid => {
-      memberMap[uid] = FRIEND_NAMES[uid] || (uid.length > 15 ? uid.slice(0, 10) + '...' : uid);
+      memberMap[uid] = savedNames[uid] || FRIEND_NAMES[uid] || (uid.length > 15 ? uid.slice(0, 10) + '...' : uid);
     });
 
     renderMembersGrid();
@@ -270,6 +271,9 @@ function renderMembersGrid() {
       const save = () => {
         const val = input.value.trim() || memberMap[uid];
         memberMap[uid] = val;
+        const savedNames = JSON.parse(localStorage.getItem('gqf_names') || '{}');
+        savedNames[uid] = val;
+        localStorage.setItem('gqf_names', JSON.stringify(savedNames));
         nameEl.textContent = val;
         input.replaceWith(nameEl);
         editBtn.style.display = '';
