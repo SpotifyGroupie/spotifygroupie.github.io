@@ -21,6 +21,7 @@ let queueTracks = [];
 let manualMode = false;
 let manualMembers = {};
 let manualIdCounter = 0;
+let loadingPlaylist = false;
 
 // ---- Helpers ----
 function $(id) { return document.getElementById(id); }
@@ -164,6 +165,8 @@ async function loadPlaylists() {
 
 // ---- Select playlist ----
 async function selectPlaylist(pl) {
+  if (loadingPlaylist) return;
+  loadingPlaylist = true;
   const imgUrl = pl.images?.[0]?.url;
   const selImgHtml = imgUrl
     ? `<img src="${esc(imgUrl)}" alt="">`
@@ -232,6 +235,8 @@ async function selectPlaylist(pl) {
     setStatus('status2', `✓ ${allTracks.length} tracks loaded${skipNote}`, 'ok');
   } catch (e) {
     $('members-grid').innerHTML = `<div class="loading" style="color:#e05">✗ ${esc(e.message)}</div>`;
+  } finally {
+    loadingPlaylist = false;
   }
 }
 
@@ -424,7 +429,8 @@ function buildQueue() {
 
 // ---- Playback ----
 async function startPlayback() {
-  setStatus('status3', 'Finding active device…');
+  if (!queueTracks.length) return;
+  setStatus('status3', 'Finding active device...');
   try {
     const devData = await spotifyGet('https://api.spotify.com/v1/me/player/devices');
     const device = devData.devices?.find(d => d.is_active) || devData.devices?.[0];
