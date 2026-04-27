@@ -473,6 +473,9 @@ input[type="text"]::placeholder { color: var(--muted); }
   margin-left: 4px;
   flex-shrink: 0;
   user-select: none;
+  padding: 10px;
+  margin-right: -10px;
+  box-sizing: content-box;
 }
 .info-icon::after {
   content: attr(data-tooltip);
