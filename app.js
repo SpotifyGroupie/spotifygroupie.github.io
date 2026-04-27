@@ -260,7 +260,7 @@ async function selectPlaylist(pl) {
 
     let skipped = 0;
 
-    if (cached && cached.snapshotId === pl.snapshot_id) {
+    if (cached && cached.snapshotId === pl.snapshot_id && cached.tracks?.length > 0) {
       allTracks = cached.tracks;
       allTracks.forEach(t => { if (t.addedBy && t.addedBy !== 'unknown') memberMap[t.addedBy] = t.addedBy; });
     } else {
@@ -284,7 +284,7 @@ async function selectPlaylist(pl) {
         }
         url = data.next;
       }
-      if (pl.snapshot_id) {
+      if (pl.snapshot_id && allTracks.length > 0) {
         try { localStorage.setItem(cacheKey, JSON.stringify({ snapshotId: pl.snapshot_id, tracks: allTracks })); }
         catch (_) {}
       }
