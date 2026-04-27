@@ -268,7 +268,7 @@ async function selectPlaylist(pl) {
       while (url) {
         const data = await spotifyGet(url);
         for (const item of (data.items || [])) {
-          const track = item?.track;
+          const track = item?.track ?? item?.item;
           if (!track || track.type !== 'track' || track.is_local || !track.uri) {
             skipped++;
             continue;
