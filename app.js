@@ -128,25 +128,17 @@ async function exchangeCode(code) {
 }
 
 // ---- Spotify API ----
-async function spotifyGet(url, onWait) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
-    if (res.status === 429) {
-      const secs = parseInt(res.headers.get('Retry-After') || '2') + 1;
-      for (let s = secs; s > 0; s--) {
-        if (onWait) onWait(s);
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      continue;
-    }
-    if (!res.ok) {
-      let errMsg = res.status + ' ' + res.statusText;
-      try { const e = await res.json(); errMsg = JSON.stringify(e); } catch (_) {}
-      throw new Error(errMsg);
-    }
-    return res.json();
+async function spotifyGet(url) {
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+  if (res.status === 429) {
+    throw new Error('Spotify is rate limiting this app. Wait a few minutes then reconnect.');
   }
-  throw new Error('Rate limited. Please wait a moment and try again.');
+  if (!res.ok) {
+    let errMsg = res.status + ' ' + res.statusText;
+    try { const e = await res.json(); errMsg = JSON.stringify(e); } catch (_) {}
+    throw new Error(errMsg);
+  }
+  return res.json();
 }
 
 // ---- Load playlists ----
