@@ -48,7 +48,10 @@ function showStep(id) {
   window.scrollTo(0, 0);
 }
 
-function goBack(step) { showStep(step); }
+function goBack(step) {
+  if (step === 'step-playlists') loadingPlaylist = false;
+  showStep(step);
+}
 
 function backFromQueue() {
   queueCancelled = true;
@@ -100,7 +103,7 @@ async function doAuth() {
     redirect_uri: REDIRECT_URI,
     code_challenge_method: 'S256',
     code_challenge: challenge,
-    scope: 'playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state user-read-private',
+    scope: 'playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state',
   });
 
   window.location = 'https://accounts.spotify.com/authorize?' + params;
@@ -108,6 +111,7 @@ async function doAuth() {
 
 async function exchangeCode(code) {
   const verifier = localStorage.getItem('gqf_verifier');
+  localStorage.removeItem('gqf_verifier');
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -124,21 +128,60 @@ async function exchangeCode(code) {
   const data = await res.json();
   if (data.error) throw new Error(data.error + ': ' + (data.error_description || ''));
   if (!data.access_token) throw new Error('No token: ' + JSON.stringify(data));
+
+  localStorage.setItem('gqf_expires_at', Date.now() + (data.expires_in ?? 3600) * 1000);
+  if (data.refresh_token) localStorage.setItem('gqf_refresh_token', data.refresh_token);
+
   return data.access_token;
+}
+
+async function refreshAccessToken() {
+  const refreshToken = localStorage.getItem('gqf_refresh_token');
+  if (!refreshToken) throw new Error('No refresh token — please reconnect.');
+
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: CLIENT_ID,
+    }),
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error + ': ' + (data.error_description || ''));
+  if (!data.access_token) throw new Error('Refresh failed: ' + JSON.stringify(data));
+
+  accessToken = data.access_token;
+  localStorage.setItem('gqf_expires_at', Date.now() + (data.expires_in ?? 3600) * 1000);
+  if (data.refresh_token) localStorage.setItem('gqf_refresh_token', data.refresh_token);
+}
+
+async function ensureFreshToken() {
+  const expiresAt = parseInt(localStorage.getItem('gqf_expires_at') || '0');
+  if (accessToken && Date.now() < expiresAt - 5 * 60 * 1000) return;
+  await refreshAccessToken();
 }
 
 // ---- Spotify API ----
 async function spotifyGet(url) {
-  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
-  if (res.status === 429) {
-    throw new Error('Spotify is rate limiting this app. Wait a few minutes then reconnect.');
+  await ensureFreshToken();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (res.status === 429) {
+      const retryAfter = parseInt(res.headers.get('Retry-After') || '1');
+      await new Promise(r => setTimeout(r, retryAfter * Math.pow(2, attempt) * 1000));
+      continue;
+    }
+    if (!res.ok) {
+      let errMsg = res.status + ' ' + res.statusText;
+      try { const e = await res.json(); errMsg = e?.error?.message || JSON.stringify(e); } catch (_) {}
+      throw new Error(errMsg);
+    }
+    return res.json();
   }
-  if (!res.ok) {
-    let errMsg = res.status + ' ' + res.statusText;
-    try { const e = await res.json(); errMsg = JSON.stringify(e); } catch (_) {}
-    throw new Error(errMsg);
-  }
-  return res.json();
+  throw new Error('Rate limited by Spotify. Try again in a few minutes.');
 }
 
 // ---- Load playlists ----
@@ -150,9 +193,7 @@ async function loadPlaylists() {
     let playlists = [];
     let url = 'https://api.spotify.com/v1/me/playlists?limit=50';
     while (url) {
-      const data = await spotifyGet(url, s => {
-        $('playlist-grid').innerHTML = `<div class="loading">Rate limited by Spotify, retrying in ${s}s...</div>`;
-      });
+      const data = await spotifyGet(url);
       playlists = playlists.concat(data.items || []);
       url = data.next;
     }
@@ -214,27 +255,39 @@ async function selectPlaylist(pl) {
   manualMembers = {};
 
   try {
+    const cacheKey = 'gqf_cache_' + pl.id;
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+
     let skipped = 0;
-    let url = `https://api.spotify.com/v1/playlists/${pl.id}/items?limit=100`;
-    while (url) {
-      const data = await spotifyGet(url);
-      for (const item of (data.items || [])) {
-        // Spotify uses "item" field for mixed playlists (tracks + episodes), "track" for legacy
-        const track = item?.item ?? item?.track;
-        if (!track || track.type !== 'track' || track.is_local || !track.uri) {
-          skipped++;
-          continue;
+
+    if (cached && cached.snapshotId === pl.snapshot_id) {
+      allTracks = cached.tracks;
+      allTracks.forEach(t => { if (t.addedBy && t.addedBy !== 'unknown') memberMap[t.addedBy] = t.addedBy; });
+    } else {
+      let url = `https://api.spotify.com/v1/playlists/${pl.id}/items?limit=100`;
+      while (url) {
+        const data = await spotifyGet(url);
+        for (const item of (data.items || [])) {
+          const track = item?.track;
+          if (!track || track.type !== 'track' || track.is_local || !track.uri) {
+            skipped++;
+            continue;
+          }
+          const userId = item.added_by?.id || 'unknown';
+          allTracks.push({
+            name: track.name || 'Unknown',
+            artist: track.artists?.map(a => a.name).join(', ') || '',
+            addedBy: userId,
+            uri: track.uri,
+          });
+          if (userId && userId !== 'unknown') memberMap[userId] = userId;
         }
-        const userId = item.added_by?.id || 'unknown';
-        allTracks.push({
-          name: track.name || 'Unknown',
-          artist: track.artists?.map(a => a.name).join(', ') || '',
-          addedBy: userId,
-          uri: track.uri,
-        });
-        if (userId && userId !== 'unknown') memberMap[userId] = userId;
+        url = data.next;
       }
-      url = data.next;
+      if (pl.snapshot_id) {
+        try { localStorage.setItem(cacheKey, JSON.stringify({ snapshotId: pl.snapshot_id, tracks: allTracks })); }
+        catch (_) {}
+      }
     }
 
     if (allTracks.length === 0) {
@@ -254,8 +307,9 @@ async function selectPlaylist(pl) {
     });
 
     renderMembersGrid();
+    const fromCache = cached && cached.snapshotId === pl.snapshot_id;
     const skipNote = skipped > 0 ? ` (${skipped} local/unavailable skipped)` : '';
-    setStatus('status2', `✓ ${allTracks.length} tracks loaded${skipNote}`, 'ok');
+    setStatus('status2', `✓ ${allTracks.length} tracks loaded${fromCache ? ' (cached)' : ''}${skipNote}`, 'ok');
   } catch (e) {
     $('members-grid').innerHTML = `<div class="loading" style="color:#e05">✗ ${esc(e.message)}</div>`;
   } finally {
@@ -505,11 +559,16 @@ async function startPlayback() {
     }
 
     // Start first track
-    await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device.id, {
+    const playRes = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device.id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
       body: JSON.stringify({ uris: [queueTracks[0].uri] }),
     });
+    if (!playRes.ok) {
+      let errMsg = playRes.status + ' ' + playRes.statusText;
+      try { const e = await playRes.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
+      throw new Error(errMsg);
+    }
 
     // Queue the rest
     for (let i = 1; i < queueTracks.length; i++) {
@@ -525,11 +584,16 @@ async function startPlayback() {
           { method: 'POST', headers: { Authorization: 'Bearer ' + accessToken } }
         );
         if (res.status === 429) {
-          const wait = (parseInt(res.headers.get('Retry-After') || '2') + 1) * 1000;
-          await new Promise(r => setTimeout(r, wait));
+          const retryAfter = parseInt(res.headers.get('Retry-After') || '1');
+          await new Promise(r => setTimeout(r, retryAfter * Math.pow(2, attempt) * 1000));
         } else {
           break;
         }
+      }
+      if (!res.ok) {
+        let errMsg = res.status + ' ' + res.statusText;
+        try { const e = await res.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
+        throw new Error(errMsg);
       }
       await new Promise(r => setTimeout(r, 100));
     }
@@ -556,16 +620,26 @@ async function startPlayback() {
     return;
   }
 
-  if (!code) return;
+  if (code) {
+    window.history.replaceState({}, '', window.location.pathname);
+    setStatus('status', 'Connecting to Spotify...');
+    try {
+      accessToken = await exchangeCode(code);
+      await loadPlaylists();
+    } catch (e) {
+      setStatus('status', '✗ ' + e.message, 'err');
+    }
+    return;
+  }
 
-  window.history.replaceState({}, '', window.location.pathname);
-  setStatus('status', 'Connecting to Spotify...');
-
-  try {
-    accessToken = await exchangeCode(code);
-    await loadPlaylists();
-  } catch (e) {
-    setStatus('status', '✗ ' + e.message, 'err');
+  if (localStorage.getItem('gqf_refresh_token')) {
+    try {
+      await refreshAccessToken();
+      await loadPlaylists();
+    } catch (e) {
+      localStorage.removeItem('gqf_refresh_token');
+      localStorage.removeItem('gqf_expires_at');
+    }
   }
 })();
 
