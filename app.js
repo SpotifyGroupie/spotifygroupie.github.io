@@ -1,5 +1,5 @@
 const CLIENT_ID = '33adcc7d9d21461692e6abbe93dc51ef';
-const REDIRECT_URI = 'https://queuefair.github.io';
+const REDIRECT_URI = 'https://qfair.github.io';
 
 const FRIEND_NAMES = {
   '92swuvcb8qlcp67ghfse2wyhp':    'AdrianRPNK',

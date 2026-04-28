@@ -1,11 +1,11 @@
-# Group Queue Filter
+# qFair
 
 Shuffle only the songs from people who are actually present — built for Spotify group playlists.
 
 ## Files
 
 ```
-group-queue-filter/
+qFair/
 ├── index.html   — markup and structure
 ├── style.css    — all styling
 ├── app.js       — all logic (Spotify auth, API calls, queue building)
@@ -19,7 +19,7 @@ group-queue-filter/
 1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
 2. Click **Create app**
 3. Fill in any name/description
-4. Set the **Redirect URI** to the URL where you'll host this (e.g. your Netlify URL)
+4. Set the **Redirect URI** to the URL where you'll host this (e.g. your GitHub Pages URL)
 5. Check **Web API** and save
 6. Copy your **Client ID** from the app page
 
@@ -27,10 +27,10 @@ group-queue-filter/
 
 This app uses OAuth and needs to be served over HTTPS — you can't just open `index.html` locally.
 
-**Easiest option: Netlify Drop**
-1. Go to [app.netlify.com/drop](https://app.netlify.com/drop)
-2. Drag the entire `group-queue-filter` folder onto the page
-3. Copy the URL Netlify gives you
+**Easiest option: GitHub Pages**
+1. Push to a GitHub Pages repo
+2. Enable Pages in the repo settings
+3. Use the generated URL as your Redirect URI in Spotify
 
 Make sure that URL exactly matches your Redirect URI in Spotify (no trailing slash).
 
@@ -44,12 +44,11 @@ While your Spotify app is in Development Mode, only approved accounts can use it
 
 ### 4. Use it
 
-1. Open your Netlify URL
-2. Paste your **Client ID** and **Redirect URI** (your Netlify URL)
-3. Click **Connect to Spotify** — approve the permissions
-4. Your playlists appear — click one
-5. Tap the people who are present tonight
-6. Hit **Build Shuffled Queue** → **Play on Spotify Now**
+1. Open your GitHub Pages URL
+2. Click **Connect to Spotify** — approve the permissions
+3. Your playlists appear — click one
+4. Tap the people who are present tonight
+5. Hit **Build Shuffled Queue** → **Play on Spotify Now**
 
 ## Notes
 
