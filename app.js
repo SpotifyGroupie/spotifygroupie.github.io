@@ -477,13 +477,17 @@ function buildQueue() {
     pools[uid] = shuffle(filtered.filter(t => t.addedBy === uid));
   });
 
-  // Equal mode caps every pool to the smallest one
   if (equalMode) {
-    const minCount = Math.min(...members.map(uid => pools[uid].length));
-    members.forEach(uid => { pools[uid] = pools[uid].slice(0, minCount); });
-  }
-
-  if (weightedMode) {
+    // Lottery mode: each round roll 1..N where N = members still with songs.
+    // When someone's songs run out they leave the pool; others keep going.
+    queueTracks = [];
+    const remaining = members.map(uid => ({ uid, pool: [...pools[uid]] }));
+    while (remaining.some(m => m.pool.length > 0)) {
+      const available = remaining.filter(m => m.pool.length > 0);
+      const chosen = available[Math.floor(Math.random() * available.length)];
+      queueTracks.push(chosen.pool.pop());
+    }
+  } else if (weightedMode) {
     const lastPicked = {};
     members.forEach(uid => lastPicked[uid] = -members.length);
     let streakPerson = null;
