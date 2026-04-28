@@ -466,8 +466,7 @@ function buildQueue() {
 
   if (filtered.length === 0) { alert('No tracks found for selected members.'); return; }
 
-  const equalMode = $('equalMode')?.checked;
-  const weightedMode = $('weightedMode')?.checked;
+  const equalSelection = $('equalSelection')?.checked;
 
   // Build per-person pools
   const members = [...activeMembers];
@@ -476,51 +475,34 @@ function buildQueue() {
     pools[uid] = shuffle(filtered.filter(t => t.addedBy === uid));
   });
 
-  if (equalMode) {
-    // Lottery mode: each round roll 1..N where N = members still with songs.
-    // When someone's songs run out they leave the pool; others keep going.
+  if (equalSelection) {
+    // Weighted lottery: each round pick one person via weighted random,
+    // then add one of their songs. People picked fewer times than average
+    // get higher odds; people picked more than average get lower odds.
+    const picks = {};
+    members.forEach(uid => picks[uid] = 0);
     queueTracks = [];
-    const remaining = members.map(uid => ({ uid, pool: [...pools[uid]] }));
-    while (remaining.some(m => m.pool.length > 0)) {
-      const available = remaining.filter(m => m.pool.length > 0);
-      const chosen = available[Math.floor(Math.random() * available.length)];
-      queueTracks.push(chosen.pool.pop());
-    }
-  } else if (weightedMode) {
-    const lastPicked = {};
-    members.forEach(uid => lastPicked[uid] = -members.length);
-    let streakPerson = null;
-    let streakCount = 0;
-    queueTracks = [];
-    let pos = 0;
 
     while (members.some(uid => pools[uid].length > 0)) {
       const available = members.filter(uid => pools[uid].length > 0);
       const N = available.length;
+      const avg = available.reduce((sum, uid) => sum + picks[uid], 0) / N;
 
       const weights = {};
       available.forEach(uid => {
-        const wait = pos - lastPicked[uid];
-        weights[uid] = Math.max(1, Math.floor(wait / N));
-        if (uid === streakPerson && streakCount >= 2 && N > 1) weights[uid] = 0;
+        weights[uid] = Math.max(1, Math.round(N + avg - picks[uid]));
       });
 
-      const eligible = available.filter(uid => weights[uid] > 0);
-      const pool = eligible.length > 0 ? eligible : available;
-      const totalWeight = pool.reduce((sum, uid) => sum + (weights[uid] || 1), 0);
-
+      const totalWeight = available.reduce((sum, uid) => sum + weights[uid], 0);
       let rand = Math.random() * totalWeight;
-      let chosen = pool[pool.length - 1];
-      for (const uid of pool) {
-        rand -= weights[uid] || 1;
+      let chosen = available[available.length - 1];
+      for (const uid of available) {
+        rand -= weights[uid];
         if (rand <= 0) { chosen = uid; break; }
       }
 
       queueTracks.push(pools[chosen].pop());
-      lastPicked[chosen] = pos;
-      streakCount = chosen === streakPerson ? streakCount + 1 : 1;
-      streakPerson = chosen;
-      pos++;
+      picks[chosen]++;
     }
   } else {
     queueTracks = shuffle(members.flatMap(uid => pools[uid]));
