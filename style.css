@@ -12,7 +12,12 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { overflow-x: hidden; width: 100%; }
+html {
+  overflow-x: hidden;
+  width: 100%;
+  border-top: 4px solid var(--green);
+}
+body { overflow-x: hidden; width: 100%; }
 
 body {
   background: var(--dark);
@@ -20,21 +25,11 @@ body {
   font-family: 'Space Mono', monospace;
   min-height: 100vh;
   padding: 2rem 1rem;
-  padding-top: calc(2rem + env(safe-area-inset-top, 0px));
   /* subtle halftone texture for the printed comic feel */
   background-image: radial-gradient(circle, rgba(255,255,255,0.032) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: calc(4px + env(safe-area-inset-top, 0px));
-  background: var(--green);
-  z-index: 100;
-  pointer-events: none;
-}
 
 .container { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
 
