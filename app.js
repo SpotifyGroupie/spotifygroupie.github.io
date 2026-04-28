@@ -458,9 +458,8 @@ function buildQueue() {
 
   let filtered;
   if (manualMode) {
-    const allIds = Object.keys(manualMembers);
-    const pool = shuffle(allTracks).map((t, i) => ({ ...t, addedBy: allIds[i % allIds.length] }));
-    filtered = pool.filter(t => activeMembers.has(t.addedBy));
+    const allIds = [...activeMembers];
+    filtered = shuffle(allTracks).map((t, i) => ({ ...t, addedBy: allIds[i % allIds.length] }));
   } else {
     filtered = allTracks.filter(t => activeMembers.has(t.addedBy));
   }
@@ -580,6 +579,7 @@ async function startPlayback() {
         setStatus('status3', `Stopped after ${i} / ${queueTracks.length} tracks.`);
         break;
       }
+      if (i % 50 === 0) await ensureFreshToken();
       setStatus('status3', `Queuing tracks... ${i} / ${queueTracks.length - 1}`);
       let res;
       for (let attempt = 0; attempt < 5; attempt++) {
