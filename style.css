@@ -447,6 +447,16 @@ input[type="text"]::placeholder { color: var(--muted); }
 .equal-toggle input:checked + .equal-toggle-box::after { left: 19px; }
 .equal-toggle-label { font-size: 0.85rem; color: var(--muted); }
 
+.btn-reroll {
+  width: 100%;
+  margin-top: 0.6rem;
+  background: transparent;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+  box-shadow: none;
+}
+.btn-reroll:hover { background: rgba(255,255,255,0.05); }
+
 .btn-stop {
   width: 100%;
   margin-top: 0.6rem;
