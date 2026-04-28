@@ -56,7 +56,6 @@
         <span class="equal-toggle-box"></span>
         <span class="equal-toggle-label">Equal Selection</span>
       </label>
-      <span class="info-icon" data-tooltip="Songs are added in rounds - each person gets exactly one slot per round, in a random order. No one can be more than one song ahead of anyone else.">i</span>
     </div>
     <button class="btn btn-full" onclick="buildQueue()">Build Shuffled Queue</button>
   </div>
@@ -78,7 +77,7 @@
       <hr class="divider">
       <div class="track-list" id="track-list"></div>
     </div>
-    <button class="btn btn-full" onclick="startPlayback()">▶ Play on Spotify Now</button>
+    <button class="btn btn-full btn-play" onclick="startPlayback()">▶ Play on Spotify Now</button>
     <button class="btn btn-reroll" onclick="buildQueue()">↺ Re-roll Queue</button>
     <button class="btn btn-stop" id="stop-btn" onclick="stopQueueing()" style="display:none">Stop Queueing</button>
     <div id="status3" class="status" style="margin-top:0.8rem;"></div>

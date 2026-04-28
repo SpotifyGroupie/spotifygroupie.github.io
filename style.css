@@ -202,6 +202,11 @@ input[type="text"]::placeholder { color: var(--muted); }
   position: relative;
   overflow: hidden;
 }
+.btn-play {
+  font-style: normal;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+}
 
 /* ---- Notice box ---- */
 .notice {

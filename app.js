@@ -612,41 +612,68 @@ async function startPlayback() {
   }
 })();
 
-// Floating circles inside .btn-full buttons
+// Floating triangles inside .btn-full buttons
 function initButtonBubbles(btn) {
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit;';
   btn.appendChild(canvas);
   const ctx = canvas.getContext('2d');
 
-  // Fixed internal resolution — CSS scales it to the real button size
-  const IW = 320, IH = 60;
-  canvas.width = IW;
-  canvas.height = IH;
+  let W = 0, H = 0, ready = false;
 
-  const circles = Array.from({ length: 9 }, () => ({
-    x: Math.random() * IW,
-    y: IH + Math.random() * IH,
-    r: 4 + Math.random() * 13,
-    vy: -(0.45 + Math.random() * 0.65),
-    vx: (Math.random() - 0.5) * 0.3,
+  const shapes = Array.from({ length: 9 }, () => ({
+    x: 0, y: 0,
+    size: 5 + Math.random() * 11,
+    vy: -(0.4 + Math.random() * 0.55),
+    vx: (Math.random() - 0.5) * 0.28,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.018,
   }));
 
-  function tick() {
-    ctx.clearRect(0, 0, IW, IH);
-    circles.forEach((c, i) => {
-      c.vx += (Math.random() - 0.5) * 0.04;
-      c.vx *= 0.97;
-      c.x += c.vx;
-      c.y += c.vy;
-      if (c.y + c.r < 0)   { c.x = Math.random() * IW; c.y = IH + c.r; }
-      if (c.x + c.r < 0)   c.x = IW + c.r;
-      if (c.x - c.r > IW)  c.x = -c.r;
+  function syncSize() {
+    const bw = btn.clientWidth, bh = btn.clientHeight;
+    if (bw === 0 || bh === 0) return;
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw; canvas.height = bh;
+      W = bw; H = bh;
+    }
+    if (!ready) {
+      shapes.forEach(s => {
+        s.x = Math.random() * W;
+        s.y = H + Math.random() * H;
+      });
+      ready = true;
+    }
+  }
 
+  function tick() {
+    syncSize();
+    if (!ready) { requestAnimationFrame(tick); return; }
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.17)';
+
+    shapes.forEach(s => {
+      s.vx += (Math.random() - 0.5) * 0.03;
+      s.vx *= 0.97;
+      s.x += s.vx;
+      s.y += s.vy;
+      s.rot += s.rotSpeed;
+
+      if (s.y + s.size < 0)  { s.x = Math.random() * W; s.y = H + s.size; }
+      if (s.x + s.size < 0)  s.x = W + s.size;
+      if (s.x - s.size > W)  s.x = -s.size;
+
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rot);
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.moveTo(0, -s.size);
+      ctx.lineTo( s.size * 0.866,  s.size * 0.5);
+      ctx.lineTo(-s.size * 0.866,  s.size * 0.5);
+      ctx.closePath();
       ctx.fill();
+      ctx.restore();
     });
     requestAnimationFrame(tick);
   }
