@@ -256,7 +256,7 @@ input[type="text"]::placeholder { color: var(--muted); }
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 0.8rem;
-  max-height: clamp(400px, 62vh, 620px);
+  max-height: clamp(500px, 78vh, 900px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #333 transparent;
@@ -690,7 +690,7 @@ input[type="text"]::placeholder { color: var(--muted); }
   .btn { font-size: 0.82rem; padding: 0.7rem 1rem; }
   .btn-full { font-size: 0.9rem; padding: 0.85rem; }
 
-  .playlist-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.6rem; }
+  .playlist-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.6rem; max-height: calc(100dvh - 7rem); }
 
   /* Cap members grid so step-3 fits without page scroll */
   .members-grid {
