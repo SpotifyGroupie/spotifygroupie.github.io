@@ -938,10 +938,17 @@ document.querySelectorAll('.btn-full').forEach(initButtonBubbles);
 
 // Prevent iOS Safari page scroll/bounce on mobile
 if (window.innerWidth <= 480) {
+  let touchStartY = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
   document.addEventListener('touchmove', e => {
-    if (!e.target.closest('.track-list, .playlist-grid, .members-grid')) {
-      e.preventDefault();
-    }
+    const scrollable = e.target.closest('.track-list, .playlist-grid, .members-grid');
+    if (!scrollable) { e.preventDefault(); return; }
+    const dy = e.touches[0].clientY - touchStartY;
+    const atTop = scrollable.scrollTop <= 0;
+    const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+    if ((atTop && dy > 0) || (atBottom && dy < 0)) e.preventDefault();
   }, { passive: false });
 }
 
