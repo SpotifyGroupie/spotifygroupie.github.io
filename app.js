@@ -23,7 +23,6 @@ let manualMembers = {};
 let manualIdCounter = 0;
 let loadingPlaylist = false;
 let equalMode = 'songs'; // 'songs' | 'time'
-let queueLimit = null;   // null = all tracks
 
 // ---- Helpers ----
 function $(id) { return document.getElementById(id); }
@@ -68,14 +67,6 @@ function setEqualMode(mode) {
   equalMode = mode;
   $('mode-songs').classList.toggle('active', mode === 'songs');
   $('mode-time').classList.toggle('active', mode === 'time');
-}
-
-function setQueueLimit(n) {
-  queueLimit = n;
-  const key = n === null ? 'all' : String(n);
-  document.querySelectorAll('.size-chips .mode-chip').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.limit === key);
-  });
 }
 
 function shuffle(arr) {
@@ -564,10 +555,6 @@ function buildQueue() {
   } else {
     queueTracks = shuffle(members.flatMap(uid => pools[uid]));
   }
-  if (queueLimit !== null && queueTracks.length > queueLimit) {
-    queueTracks = queueTracks.slice(0, queueLimit);
-  }
-
   $('q-count').textContent = queueTracks.length;
   $('q-members').textContent = activeMembers.size;
 
