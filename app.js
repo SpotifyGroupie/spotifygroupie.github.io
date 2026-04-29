@@ -581,9 +581,9 @@ function buildQueue() {
     const list = $('track-list');
     list.classList.add('rolling-out');
     setTimeout(() => {
+      list.scrollTop = 0;
       list.classList.remove('rolling-out');
       renderTrackList();
-      list.scrollTop = 0;
     }, 190);
   } else {
     renderTrackList();
