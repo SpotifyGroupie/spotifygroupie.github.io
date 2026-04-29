@@ -370,6 +370,11 @@ async function selectPlaylist(pl) {
     setStatus('status2', `✓ ${allTracks.length} tracks loaded${fromCache ? ' (cached)' : ''}${skipNote}`, 'ok');
   } catch (e) {
     $('members-grid').innerHTML = `<div class="loading" style="color:#e05">✗ ${esc(e.message)}</div>`;
+    const el = $('members-grid');
+    const rect = el.getBoundingClientRect();
+    if (rect.bottom > window.innerHeight) {
+      window.scrollTo({ top: window.scrollY + rect.bottom - window.innerHeight + 16, behavior: 'smooth' });
+    }
   } finally {
     loadingPlaylist = false;
   }
@@ -690,7 +695,11 @@ async function startPlayback() {
     triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
   } finally {
     if (playBtn) { playBtn.disabled = false; $('play-btn-text').textContent = 'Play on Spotify Now'; }
-    $('status3').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const st = $('status3');
+    const rect = st.getBoundingClientRect();
+    if (rect.bottom > window.innerHeight) {
+      window.scrollTo({ top: window.scrollY + rect.bottom - window.innerHeight + 16, behavior: 'smooth' });
+    }
   }
 }
 
