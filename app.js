@@ -281,6 +281,7 @@ async function loadPlaylists() {
     });
   } catch (e) {
     $('playlist-grid').innerHTML = `<div class="loading" style="color:#e05">✗ ${esc(e.message)}</div>`;
+    triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
   }
 }
 
@@ -370,6 +371,7 @@ async function selectPlaylist(pl) {
     setStatus('status2', `✓ ${allTracks.length} tracks loaded${fromCache ? ' (cached)' : ''}${skipNote}`, 'ok');
   } catch (e) {
     $('members-grid').innerHTML = `<div class="loading" style="color:#e05">✗ ${esc(e.message)}</div>`;
+    triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
     const el = $('members-grid');
     const rect = el.getBoundingClientRect();
     if (rect.bottom > window.innerHeight) {
@@ -713,6 +715,7 @@ async function startPlayback() {
 
   if (error) {
     setStatus('status', 'Spotify login failed: ' + error, 'err');
+    setTimeout(() => triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000), 0);
     window.history.replaceState({}, '', window.location.pathname);
     return;
   }
@@ -725,6 +728,7 @@ async function startPlayback() {
       await loadPlaylists();
     } catch (e) {
       setStatus('status', '✗ ' + e.message, 'err');
+      triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
     }
     return;
   }
