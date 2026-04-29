@@ -192,7 +192,7 @@ async function exchangeCode(code) {
 
 async function refreshAccessToken() {
   const refreshToken = localStorage.getItem('gqf_refresh_token');
-  if (!refreshToken) throw new Error('No refresh token — please reconnect.');
+  if (!refreshToken) throw new Error('No refresh token - please reconnect.');
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -233,6 +233,7 @@ async function spotifyGet(url) {
     if (!res.ok) {
       let errMsg = res.status + ' ' + res.statusText;
       try { const e = await res.json(); errMsg = e?.error?.message || JSON.stringify(e); } catch (_) {}
+      if (res.status === 403) errMsg += ' - you may not have access to this playlist';
       throw new Error(errMsg);
     }
     return res.json();
@@ -677,6 +678,7 @@ async function startPlayback() {
     if (!res.ok) {
       let errMsg = res.status + ' ' + res.statusText;
       try { const e = await res.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
+      if (res.status === 403) errMsg += ' - your Spotify account may not have playback permission';
       throw new Error(errMsg);
     }
 
@@ -866,7 +868,7 @@ function initButtonBubbles(btn) {
     }
 
     circles.forEach(c => {
-      // Mouse / touch push — sqrt only when inside repel radius
+      // Mouse / touch push - sqrt only when inside repel radius
       const dx = c.x - mouseX, dy = c.y - mouseY;
       const dist2 = dx * dx + dy * dy;
       if (dist2 < REPEL_R2 && dist2 > 0) {
