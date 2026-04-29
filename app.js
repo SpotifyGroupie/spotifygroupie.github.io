@@ -689,8 +689,7 @@ async function startPlayback() {
       throw new Error(errMsg);
     }
 
-    const truncated = queueTracks.length > MAX_URIS ? ` (first ${MAX_URIS} of ${queueTracks.length})` : '';
-    setStatus('status3', `✓ ${uris.length} tracks sent to "${device.name}"${truncated}`, 'ok');
+    setStatus('status3', `✓ ${queueTracks.length} tracks sent to "${device.name}"`, 'ok');
     triggerCircleFlash('rgba(50, 220, 100, 0.90)', -2, 1000);
   } catch (e) {
     setStatus('status3', '✗ ' + e.message, 'err');
