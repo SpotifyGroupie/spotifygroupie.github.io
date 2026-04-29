@@ -690,6 +690,7 @@ async function startPlayback() {
     triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
   } finally {
     if (playBtn) { playBtn.disabled = false; $('play-btn-text').textContent = 'Play on Spotify Now'; }
+    $('status3').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 
