@@ -40,6 +40,7 @@ function setStatus(id, msg, cls) {
   if (!el) return;
   el.textContent = msg;
   el.className = 'status' + (cls ? ' ' + cls : '');
+  if (cls === 'err' && msg) window.triggerCircleFlash?.('rgba(220, 50, 50, 0.85)', 2, 1000);
 }
 
 function showStep(id) {
@@ -670,7 +671,6 @@ async function startPlayback() {
     const device = devData.devices?.find(d => d.is_active) || devData.devices?.[0];
     if (!device) {
       setStatus('status3', '✗ No active device found. Open Spotify and play something first, then try again.', 'err');
-      triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
       return;
     }
 
@@ -694,7 +694,6 @@ async function startPlayback() {
     triggerCircleFlash('rgba(50, 220, 100, 0.90)', -2, 1000);
   } catch (e) {
     setStatus('status3', '✗ ' + e.message, 'err');
-    triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
   } finally {
     if (playBtn) { playBtn.disabled = false; $('play-btn-text').textContent = 'Play on Spotify Now'; }
     const st = $('status3');
@@ -728,7 +727,6 @@ async function startPlayback() {
       await loadPlaylists();
     } catch (e) {
       setStatus('status', '✗ ' + e.message, 'err');
-      triggerCircleFlash('rgba(220, 50, 50, 0.85)', 2, 1000);
     }
     return;
   }
