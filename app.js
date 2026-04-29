@@ -749,8 +749,8 @@ function initButtonBubbles(btn) {
     rotSpeed: (Math.random() - 0.5) * 0.018,
   }));
 
-  new ResizeObserver(entries => {
-    const { width: bw, height: bh } = entries[0].contentRect;
+  new ResizeObserver(() => {
+    const bw = btn.clientWidth, bh = btn.clientHeight;
     if (bw === 0 || bh === 0) return;
     canvas.width = bw; canvas.height = bh;
     W = bw; H = bh;
