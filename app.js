@@ -780,6 +780,7 @@ function initButtonBubbles(btn) {
 
   function tick() {
     if (!ready) { requestAnimationFrame(tick); return; }
+    if (document.hidden) { requestAnimationFrame(tick); return; }
 
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = 'rgba(255,255,255,0.17)';
@@ -811,7 +812,7 @@ function initButtonBubbles(btn) {
 // Floating circle background
 (function () {
   const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;';
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;transform:translateZ(0);';
   document.body.insertBefore(canvas, document.body.firstChild);
   const ctx = canvas.getContext('2d');
 
@@ -836,15 +837,15 @@ function initButtonBubbles(btn) {
   }, { passive: true });
 
   const COLORS = [
-    'rgba(29, 185, 84,  0.45)', // main green
-    'rgba(20, 130, 58,  0.50)', // dark green
-    'rgba(80, 210, 120, 0.35)', // light green
-    'rgba(12,  90, 40,  0.55)', // deep green
-    'rgba(140, 140, 140, 0.22)', // mid gray
-    'rgba(80,  80,  80,  0.28)', // dark gray
-    'rgba(190, 190, 190, 0.18)', // light gray
-    'rgba(255, 255, 255, 0.14)', // white
-    'rgba(220, 220, 220, 0.16)', // off-white
+    'rgba(29, 185, 84,  0.45)',
+    'rgba(20, 130, 58,  0.50)',
+    'rgba(80, 210, 120, 0.35)',
+    'rgba(12,  90, 40,  0.55)',
+    'rgba(140, 140, 140, 0.22)',
+    'rgba(80,  80,  80,  0.28)',
+    'rgba(190, 190, 190, 0.18)',
+    'rgba(255, 255, 255, 0.14)',
+    'rgba(220, 220, 220, 0.16)',
   ];
 
   function spawn(atRandom) {
@@ -861,7 +862,6 @@ function initButtonBubbles(btn) {
   }
 
   const circles = Array.from({ length: 20 }, () => spawn(true));
-
   const REPEL_R = 130, REPEL_R2 = REPEL_R * REPEL_R, REPEL_STR = 1.8;
 
   function resetCircle(c) {
@@ -873,7 +873,12 @@ function initButtonBubbles(btn) {
     c.color = COLORS[Math.floor(Math.random() * COLORS.length)];
   }
 
+  // Pre-allocated per-color buckets — reused every frame to avoid GC pressure
+  const colorGroups = new Map(COLORS.map(c => [c, []]));
+
   function tick() {
+    if (document.hidden) return;
+
     const now = performance.now();
     let flashBlend = 0;
     if (flash.active) {
@@ -887,7 +892,6 @@ function initButtonBubbles(btn) {
     }
 
     circles.forEach(c => {
-      // Mouse / touch push - sqrt only when inside repel radius
       const dx = c.x - mouseX, dy = c.y - mouseY;
       const dist2 = dx * dx + dy * dy;
       if (dist2 < REPEL_R2 && dist2 > 0) {
@@ -896,39 +900,47 @@ function initButtonBubbles(btn) {
         c.vx += (dx / dist) * t * t * REPEL_STR;
         c.vy += (dy / dist) * t * t * REPEL_STR;
       }
-
       c.vx += (Math.random() - 0.5) * 0.025;
       c.vx *= 0.97;
       c.vy = c.vy * 0.97 + c.floatVy * 0.03;
-
       c.x += c.vx;
       c.y += c.vy + c.floatVy + (flashBlend === 1 ? flash.vyBoost : 0);
-
       if (c.x + c.r < 0) c.x = W + c.r;
       if (c.x - c.r > W) c.x = -c.r;
-
       if (c.y + c.r < 0 || c.y - c.r > H) resetCircle(c);
     });
 
     ctx.clearRect(0, 0, W, H);
-    circles.forEach(c => {
+
+    // Batch draws by color: one beginPath+fill per color group instead of per circle
+    colorGroups.forEach(arr => { arr.length = 0; });
+    circles.forEach(c => colorGroups.get(c.color).push(c));
+    colorGroups.forEach((group, color) => {
+      if (!group.length) return;
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-      ctx.fillStyle = c.color;
+      group.forEach(c => ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2));
+      ctx.fillStyle = color;
       ctx.fill();
     });
+
+    // Flash overlay: single batched path instead of one fill() per circle
     if (flashBlend > 0) {
       ctx.globalAlpha = flashBlend;
       ctx.fillStyle = flash.color;
-      circles.forEach(c => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
+      ctx.beginPath();
+      circles.forEach(c => ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2));
+      ctx.fill();
       ctx.globalAlpha = 1;
     }
+
     requestAnimationFrame(tick);
   }
+
+  // Pause when tab is hidden, resume when it comes back
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) requestAnimationFrame(tick);
+  });
+
   tick();
 })();
 
