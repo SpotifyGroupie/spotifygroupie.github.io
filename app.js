@@ -22,8 +22,8 @@ let manualMode = false;
 let manualMembers = {};
 let manualIdCounter = 0;
 let loadingPlaylist = false;
-let queueCancelled = false;
 let equalMode = 'songs'; // 'songs' | 'time'
+let queueLimit = null;   // null = all tracks
 
 // ---- Helpers ----
 function $(id) { return document.getElementById(id); }
@@ -55,14 +55,8 @@ function goBack(step) {
 }
 
 function backFromQueue() {
-  queueCancelled = true;
-  $('stop-btn').style.display = 'none';
   setStatus('status3', '');
   showStep('step-members');
-}
-
-function stopQueueing() {
-  queueCancelled = true;
 }
 
 function toggleEqualMode(on) {
@@ -74,6 +68,14 @@ function setEqualMode(mode) {
   equalMode = mode;
   $('mode-songs').classList.toggle('active', mode === 'songs');
   $('mode-time').classList.toggle('active', mode === 'time');
+}
+
+function setQueueLimit(n) {
+  queueLimit = n;
+  const key = n === null ? 'all' : String(n);
+  document.querySelectorAll('.size-chips .mode-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.limit === key);
+  });
 }
 
 function shuffle(arr) {
@@ -562,6 +564,10 @@ function buildQueue() {
   } else {
     queueTracks = shuffle(members.flatMap(uid => pools[uid]));
   }
+  if (queueLimit !== null && queueTracks.length > queueLimit) {
+    queueTracks = queueTracks.slice(0, queueLimit);
+  }
+
   $('q-count').textContent = queueTracks.length;
   $('q-members').textContent = activeMembers.size;
 
@@ -586,67 +592,33 @@ function buildQueue() {
 // ---- Playback ----
 async function startPlayback() {
   if (!queueTracks.length) return;
-  queueCancelled = false;
   const playBtn = $('play-btn');
-  if (playBtn) { playBtn.disabled = true; playBtn.textContent = 'Connecting...'; }
-  $('stop-btn').style.display = '';
-  setStatus('status3', 'Finding active device...');
+  if (playBtn) { playBtn.disabled = true; playBtn.textContent = 'Starting…'; }
+  setStatus('status3', 'Finding active device…');
   try {
     const devData = await spotifyGet('https://api.spotify.com/v1/me/player/devices');
     const device = devData.devices?.find(d => d.is_active) || devData.devices?.[0];
     if (!device) {
       setStatus('status3', '✗ No active device found. Open Spotify and play something first.', 'err');
-      $('stop-btn').style.display = 'none';
       return;
     }
 
-    // Start first track
-    const playRes = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device.id, {
+    setStatus('status3', 'Sending queue to Spotify…');
+    const res = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device.id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uris: [queueTracks[0].uri] }),
+      body: JSON.stringify({ uris: queueTracks.map(t => t.uri) }),
     });
-    if (!playRes.ok) {
-      let errMsg = playRes.status + ' ' + playRes.statusText;
-      try { const e = await playRes.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
+    if (!res.ok) {
+      let errMsg = res.status + ' ' + res.statusText;
+      try { const e = await res.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
       throw new Error(errMsg);
     }
 
-    // Queue the rest
-    for (let i = 1; i < queueTracks.length; i++) {
-      if (queueCancelled) {
-        setStatus('status3', `Stopped after ${i} / ${queueTracks.length} tracks.`);
-        break;
-      }
-      if (i % 50 === 0) await ensureFreshToken();
-      setStatus('status3', `Queuing tracks... ${i} / ${queueTracks.length - 1}`);
-      if (playBtn) playBtn.textContent = `Queueing ${i} / ${queueTracks.length - 1}...`;
-      let res;
-      for (let attempt = 0; attempt < 5; attempt++) {
-        res = await fetch(
-          `https://api.spotify.com/v1/me/player/queue?uri=${encodeURIComponent(queueTracks[i].uri)}&device_id=${device.id}`,
-          { method: 'POST', headers: { Authorization: 'Bearer ' + accessToken } }
-        );
-        if (res.status === 429) {
-          const retryAfter = parseInt(res.headers.get('Retry-After') || '1');
-          await new Promise(r => setTimeout(r, retryAfter * Math.pow(2, attempt) * 1000));
-        } else {
-          break;
-        }
-      }
-      if (!res.ok) {
-        let errMsg = res.status + ' ' + res.statusText;
-        try { const e = await res.json(); errMsg = e?.error?.message || errMsg; } catch (_) {}
-        throw new Error(errMsg);
-      }
-      await new Promise(r => setTimeout(r, 100));
-    }
-
-    if (!queueCancelled) setStatus('status3', `Queued ${queueTracks.length} tracks on "${device.name}"!`, 'ok');
+    setStatus('status3', `✓ ${queueTracks.length} tracks sent to "${device.name}" — safe to close this tab.`, 'ok');
   } catch (e) {
     setStatus('status3', '✗ ' + e.message, 'err');
   } finally {
-    $('stop-btn').style.display = 'none';
     if (playBtn) { playBtn.disabled = false; playBtn.textContent = '→ Play on Spotify Now'; }
   }
 }

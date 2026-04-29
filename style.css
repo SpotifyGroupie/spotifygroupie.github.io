@@ -637,6 +637,32 @@ input[type="text"]::placeholder { color: var(--muted); }
   right: 7px;
   margin: 0;
 }
+
+/* ---- Queue size row ---- */
+.queue-size-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.queue-size-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.size-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+}
+.size-chips .mode-chip { flex: 1; padding: 0.5rem 0.2rem; }
+
 .mode-chip {
   flex: 1;
   background: #0a0a0a;

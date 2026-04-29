@@ -68,6 +68,15 @@
         <span class="info-icon" data-tooltip="Everyone gets the same total listening time. Best when tracks vary a lot in length.">i</span>
       </div>
     </div>
+    <div class="queue-size-row">
+      <span class="queue-size-label">Queue</span>
+      <div class="size-chips">
+        <button class="mode-chip" data-limit="25" onclick="setQueueLimit(25)">25</button>
+        <button class="mode-chip" data-limit="50" onclick="setQueueLimit(50)">50</button>
+        <button class="mode-chip" data-limit="100" onclick="setQueueLimit(100)">100</button>
+        <button class="mode-chip active" data-limit="all" onclick="setQueueLimit(null)">All</button>
+      </div>
+    </div>
     <button class="btn btn-full" onclick="buildQueue()">Build Shuffled Queue</button>
   </div>
 
@@ -90,10 +99,9 @@
     </div>
     <button class="btn btn-full btn-play" id="play-btn" onclick="startPlayback()">→ Play on Spotify Now</button>
     <button class="btn btn-reroll" onclick="buildQueue()">↺ Re-roll Queue</button>
-    <button class="btn btn-stop" id="stop-btn" onclick="stopQueueing()" style="display:none">Stop Queueing</button>
     <div id="status3" class="status" style="margin-top:0.8rem;"></div>
     <div class="notice" style="margin-top:1rem; font-size:0.68rem;">
-      Make sure Spotify is open and playing on your device before hitting play. This replaces your current queue.
+      Make sure Spotify is open on your device before hitting play. Once started, you can close this tab — Spotify handles the rest.
     </div>
   </div>
 </div>
