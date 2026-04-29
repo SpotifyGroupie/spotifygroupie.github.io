@@ -14,11 +14,11 @@
 html {
   overflow-x: hidden;
   width: 100%;
-  border-top: 4px solid var(--green);
 }
 body { overflow-x: hidden; width: 100%; }
 
 body {
+  border-top: 4px solid var(--green);
   background: var(--dark);
   color: var(--text);
   font-family: 'Space Mono', monospace;
