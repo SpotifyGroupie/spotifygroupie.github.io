@@ -634,9 +634,21 @@ input[type="text"]::placeholder { color: var(--muted); }
 }
 .mode-option {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+}
+.mode-option .mode-chip { flex: 1; }
+.mode-option .info-icon {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  margin: 0;
+}
+.mode-option .info-icon::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+  z-index: 100;
 }
 .mode-chip {
   flex: 1;
