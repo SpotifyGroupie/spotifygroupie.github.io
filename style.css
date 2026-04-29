@@ -212,7 +212,7 @@ input[type="text"]::placeholder { color: var(--muted); }
 .notice {
   background: rgba(29,185,84,0.05);
   border: 2px solid rgba(29,185,84,0.22);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 1rem;
   font-size: 0.73rem;
   line-height: 1.6;
@@ -266,7 +266,7 @@ input[type="text"]::placeholder { color: var(--muted); }
 .playlist-card {
   background: #0a0a0a;
   border: 2px solid rgba(255,255,255,0.18);
-  border-radius: 14px;
+  border-radius: 16px;
   cursor: pointer;
   overflow: hidden;
   transition: border-color 0.14s, transform 0.14s, box-shadow 0.14s;
@@ -447,7 +447,7 @@ input[type="text"]::placeholder { color: var(--muted); }
 .manual-notice {
   background: #1a1200;
   border: 2px solid #3a2e00;
-  border-radius: 14px;
+  border-radius: 16px;
   color: #c9a84c;
   font-size: 0.72rem;
   line-height: 1.6;
@@ -489,7 +489,7 @@ input[type="text"]::placeholder { color: var(--muted); }
   width: 56px;
   height: 56px;
   min-height: 56px;
-  border-radius: 10px;
+  border-radius: 12px;
   object-fit: cover;
   background: #1a1a1a;
   flex-shrink: 0;
@@ -513,7 +513,7 @@ input[type="text"]::placeholder { color: var(--muted); }
   font-size: 0.8rem;
   background: #000;
   border: 2px solid var(--green);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text);
   padding: 1px 6px;
   width: 90px;
@@ -685,7 +685,7 @@ input[type="text"]::placeholder { color: var(--muted); }
     padding-left: 0.7rem;
   }
 
-  .card { padding: 1.1rem; border-radius: 14px; }
+  .card { padding: 1.1rem; }
 
   .btn { font-size: 0.82rem; padding: 0.7rem 1rem; }
   .btn-full { font-size: 0.9rem; padding: 0.85rem; }
