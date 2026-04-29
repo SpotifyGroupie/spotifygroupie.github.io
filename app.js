@@ -583,6 +583,7 @@ function buildQueue() {
     setTimeout(() => {
       list.classList.remove('rolling-out');
       renderTrackList();
+      list.scrollTop = 0;
     }, 190);
   } else {
     renderTrackList();
