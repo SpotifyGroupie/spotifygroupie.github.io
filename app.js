@@ -55,6 +55,7 @@ function goBack(step) {
 }
 
 function backFromQueue() {
+  $('track-list').scrollTop = 0;
   setStatus('status3', '');
   showStep('step-members');
 }
