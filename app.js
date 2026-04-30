@@ -55,7 +55,6 @@ function goBack(step) {
 }
 
 function backFromQueue() {
-  $('track-list').scrollTop = 0;
   setStatus('status3', '');
   showStep('step-members');
 }
@@ -587,6 +586,7 @@ function buildQueue() {
     }, 190);
   } else {
     renderTrackList();
+    $('track-list').scrollTop = 0;
     showStep('step-queue');
   }
 }
